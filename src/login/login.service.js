@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 export class LoginService {
     // Функция для входа пользователя (таблица User)

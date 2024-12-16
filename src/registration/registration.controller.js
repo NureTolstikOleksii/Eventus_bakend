@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { RegisterService } from './registration.service.js';
 import { EmailService } from '../email/email.service.js';
 
