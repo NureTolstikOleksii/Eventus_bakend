@@ -20,9 +20,11 @@ dotenv.config();
 
 const app = express();
 
+app.set('trust proxy', 1);
+
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://localhost:8081'],
-    credentials: true 
+    origin: '*',
+    credentials: true,
 }));
 
 // Конфигурация сессии
@@ -32,9 +34,9 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         maxAge: 24 * 60 * 60 * 1000, // 24 часа
-        secure: false,
+        secure: process.env.NODE_ENV === 'production', // true в продакшене
         httpOnly: true,
-        sameSite: 'lax'
+        sameSite: 'none'
     }
 }));
 
