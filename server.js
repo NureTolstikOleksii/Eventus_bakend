@@ -23,11 +23,17 @@ const app = express();
 app.set('trust proxy', 1);
 
 app.use(cors({
+    origin: ['http://localhost:3000', 'http://localhost:8081'],
+    credentials: true 
+}));
+
+/*
+app.use(cors({
     origin: (origin, callback) => {
         callback(null, true);
     },
     credentials: true
-}));
+}));*/
 
 
 // Конфигурация сессии
