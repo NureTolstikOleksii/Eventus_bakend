@@ -61,7 +61,7 @@ async function main() {
     app.use('/reviews', reviewsRouter);
     app.use('/wishlist', wishlistRouter);
 
-    app.use('/wishlist', (req, res) => {
+    app.use('/', (req, res) => {
         res.send('Hello from EVENTUS!');
     });
 
