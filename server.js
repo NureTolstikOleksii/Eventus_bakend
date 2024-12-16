@@ -23,9 +23,12 @@ const app = express();
 app.set('trust proxy', 1);
 
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://localhost:8080'],
-    credentials: true,
+    origin: (origin, callback) => {
+        callback(null, true); // Дозволити всі домени
+    },
+    credentials: true
 }));
+
 
 // Конфигурация сессии
 app.use(session({
@@ -34,9 +37,9 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         maxAge: 24 * 60 * 60 * 1000, // 24 часа
-        secure: process.env.NODE_ENV === 'production', // true в продакшене
+        secure: false,
         httpOnly: true,
-        sameSite: 'none'
+        sameSite: 'lax'
     }
 }));
 
