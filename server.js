@@ -24,7 +24,7 @@ app.set('trust proxy', 1);
 
 app.use(cors({
     origin: (origin, callback) => {
-        callback(null, true); // Дозволити всі домени
+        callback(null, true);
     },
     credentials: true
 }));
@@ -66,11 +66,6 @@ async function main() {
     app.use('/reviews', reviewsRouter);
     app.use('/wishlist', wishlistRouter);
 
-    app.use('/', (req, res) => {
-        res.send('Hello from EVENTUS!');
-    });
-
-  
     //Для перевірки існування сесії
     app.get('/session', (req, res) => {
         if (req.session && req.session.userId) {
