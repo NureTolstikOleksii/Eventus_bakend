@@ -35,7 +35,7 @@ app.use(session({
     cookie: {
         maxAge: 24 * 60 * 60 * 1000, // 24 часа
         secure: process.env.NODE_ENV === 'production', // true в продакшене
-        httpOnly: true,
+        httpOnly: false,
         sameSite: 'none'
     }
 }));
