@@ -60,6 +60,11 @@ async function main() {
     app.use('/checklist', checklistRouter);
     app.use('/reviews', reviewsRouter);
     app.use('/wishlist', wishlistRouter);
+
+    app.use('/wishlist', (req, res) => {
+        res.send('Hello from EVENTUS!');
+    });
+
   
     //Для перевірки існування сесії
     app.get('/session', (req, res) => {
