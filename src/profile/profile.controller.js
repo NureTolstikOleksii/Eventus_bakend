@@ -69,34 +69,19 @@ router.get('/providerForCustomer/:providerId', async (req, res) => {
 });
 
 // профіль замовника для замовника
-router.get('/customer/profile', async (req, res) => {
-    // Логування даних сесії для перевірки
-    console.log('Session data:', req.session);
+router.get('/customer/profile', (req, res) => {
+    console.log('Session data:', req.session); // Логування сесії
 
-    // Перевірка наявності userId та ролі
+    // Перевірка сесії
     if (!req.session.userId || req.session.userRole !== 'customer') {
         return res.status(403).json({ message: 'Log in to access profile' });
     }
 
-    try {
-        // Виклик сервісу для отримання даних замовника
-        const profile = await profileService.getCustomerBasicInfo(req.db, req.session.userId);
-
-        // Якщо профіль не знайдено
-        if (!profile) {
-            console.log(`Profile not found for userId: ${req.session.userId}`);
-            return res.status(404).json({ message: 'Customer profile not found' });
-        }
-
-        // Повертаємо ім'я та фото
-        res.status(200).json({
-            name: profile.name,
-            photo: profile.photo_url,
-        });
-    } catch (error) {
-        console.error('Error fetching profile:', error.message);
-        res.status(500).json({ message: 'Failed to fetch customer basic info' });
-    }
+    // Повертаємо дані профілю із сесії
+    res.status(200).json({
+        name: req.session.name || 'Невідомий користувач',
+        photo: req.session.photo || null,
+    });
 });
 
 
