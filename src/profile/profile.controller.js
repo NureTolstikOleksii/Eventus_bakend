@@ -82,9 +82,10 @@ router.get('/customer/profile', async (req, res) => {
             return res.status(404).json({ message: 'Customer profile not found' });
         }
 
-        // Повертаємо тільки ім'я
+        // Повертаємо тільки ім'я та фото
         res.status(200).json({
             name: profile.name,
+            photo: profile.photo_url,
         });
     } catch (error) {
         res.status(500).json({ message: error.message });

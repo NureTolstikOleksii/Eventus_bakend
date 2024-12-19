@@ -74,13 +74,12 @@ export class ProfileService {
         try {
             // Запит до бази даних для отримання лише імені
             const result = await db.query(
-                'SELECT name FROM customers WHERE id = $1',
+                'SELECT name, photo_url FROM User WHERE user_id = $1',
                 [userId]
             );
             return result.rows[0]; // Повертаємо перший запис
         } catch (error) {
             throw new Error('Failed to fetch customer basic info');
         }
-    }
-    
+    }    
 }
