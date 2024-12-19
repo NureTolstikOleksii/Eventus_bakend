@@ -70,6 +70,10 @@ router.get('/providerForCustomer/:providerId', async (req, res) => {
 
 // профіль замовника для замовника
 router.get('/customer/profile', async (req, res) => {
+    // Логування даних сесії для перевірки
+    console.log('Session data:', req.session);
+
+    // Перевірка наявності userId та ролі
     if (!req.session.userId || req.session.userRole !== 'customer') {
         return res.status(403).json({ message: 'Log in to access profile' });
     }
@@ -78,20 +82,22 @@ router.get('/customer/profile', async (req, res) => {
         // Виклик сервісу для отримання даних замовника
         const profile = await profileService.getCustomerBasicInfo(req.db, req.session.userId);
 
+        // Якщо профіль не знайдено
         if (!profile) {
+            console.log(`Profile not found for userId: ${req.session.userId}`);
             return res.status(404).json({ message: 'Customer profile not found' });
         }
 
-        // Повертаємо тільки ім'я та фото
+        // Повертаємо ім'я та фото
         res.status(200).json({
             name: profile.name,
             photo: profile.photo_url,
         });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.error('Error fetching profile:', error.message);
+        res.status(500).json({ message: 'Failed to fetch customer basic info' });
     }
 });
-
 
 
 export const profileRouter = router;
