@@ -69,4 +69,17 @@ export class ProfileService {
             throw new Error('Failed to retrieve provider profile for customer: ' + error.message);
         }
     }
+
+    async getCustomerBasicInfo(db, userId) {
+        try {
+            // Запит до бази даних для отримання імені та фото
+            const result = await db.query(
+                'SELECT name, photo FROM customers WHERE id = $1',
+                [userId]
+            );
+            return result.rows[0]; // Повертаємо перший запис
+        } catch (error) {
+            throw new Error('Failed to fetch customer basic info');
+        }
+    }
 }

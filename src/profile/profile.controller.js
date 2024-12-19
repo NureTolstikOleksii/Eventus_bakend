@@ -68,4 +68,29 @@ router.get('/providerForCustomer/:providerId', async (req, res) => {
     }
 });
 
+// профіль замовника для замовника
+router.get('/customer/profile', async (req, res) => {
+    if (!req.session.userId || req.session.userRole !== 'customer') {
+        return res.status(403).json({ message: 'Log in to access profile' });
+    }
+
+    try {
+        // Виклик сервісу для отримання даних замовника
+        const profile = await profileService.getCustomerBasicInfo(req.db, req.session.userId);
+
+        if (!profile) {
+            return res.status(404).json({ message: 'Customer profile not found' });
+        }
+
+        // Повертаємо тільки ім'я та фото
+        res.status(200).json({
+            name: profile.name,
+            photo: profile.photo,
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+
 export const profileRouter = router;
