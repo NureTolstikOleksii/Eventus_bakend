@@ -30,6 +30,7 @@ router.post('/', async (req, res) => {
         req.session.userId = user.user_id || user.provider_id;
         req.session.name = user.name;
         req.session.userRole = role;
+        req.session.photo = user.photo_url;
         console.log('Session data:', req.session);
 
         res.status(200).json({ message: 'Login successful', role, user });
