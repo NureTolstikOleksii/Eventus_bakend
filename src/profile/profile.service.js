@@ -1,27 +1,27 @@
 export class ProfileService {
-    // async getProviderProfile(db, providerId) {
-    //     try {
-    //         const query = `
-    //             SELECT name, photo_url, company_name, rating 
-    //             FROM Provider
-    //             WHERE provider_id = ?
-    //         `;
-    //         const result = await db.get(query, [providerId]);
+    async getProviderProfile(db, providerId) {
+        try {
+            const query = `
+                SELECT name, photo_url, company_name, rating 
+                FROM Provider
+                WHERE provider_id = ?
+            `;
+            const result = await db.get(query, [providerId]);
 
-    //         if (!result) {
-    //             throw new Error('Provider profile not found');
-    //         }
+            if (!result) {
+                throw new Error('Provider profile not found');
+            }
 
-    //         return {
-    //             name: result.name,
-    //             photo_url: result.photo_url,
-    //             company_name: result.company_name,
-    //             rating: result.rating
-    //         };
-    //     } catch (error) {
-    //         throw new Error('Failed to retrieve provider profile: ' + error.message);
-    //     }
-    // }
+            return {
+                name: result.name,
+                photo_url: result.photo_url,
+                company_name: result.company_name,
+                rating: result.rating
+            };
+        } catch (error) {
+            throw new Error('Failed to retrieve provider profile: ' + error.message);
+        }
+    }
 
     async getCustomerProfile(db, user_id) {
         try {
@@ -84,7 +84,7 @@ export class ProfileService {
     }   
     
     // профіль постачалника для постачалника
-    async getProviderProfile(db,userId) {
+    async getProviderBasicInfo(db,userId) {
         try {
             const provider = await db.query(
                 `SELECT name, photo_url, company_name, rating FROM Provider WHERE provider_id = $1`,
