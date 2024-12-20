@@ -3,7 +3,7 @@ import { connectToDatabase } from '../../database/database.js';
 
 const router = express.Router();
 
-// Отримати список бажань для користувача
+// Получить список желаний для пользователя
 router.get('/', async (req, res) => {
     const { user_id } = req.query;
 
@@ -13,14 +13,21 @@ router.get('/', async (req, res) => {
 
     try {
         const db = await connectToDatabase();
+        console.log('Fetching wishlist for user_id:', user_id);
+
         const wishlist = await db.all(
             `SELECT w.wishlist_id, w.added_date, s.name AS service_name, u.name AS provider_name
-        FROM Wishlist w
-        JOIN Service s ON w.service_id = s.service_id
-        JOIN User u ON w.user_id = u.user_id
-        WHERE w.user_id = ?;`, 
+            FROM Wishlist w
+            JOIN Service s ON w.service_id = s.service_id
+            JOIN User u ON w.user_id = u.user_id
+            WHERE w.user_id = ?;`, 
             [user_id]
         );
+
+        if (wishlist.length === 0) {
+            return res.status(200).json({ message: 'No wishlist items found', wishlist: [] });
+        }
+
         res.status(200).json(wishlist);
     } catch (error) {
         console.error('Error fetching wishlist:', error);
@@ -28,7 +35,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Додати елемент до списку бажань
+// Добавить элемент в список желаний
 router.post('/', async (req, res) => {
     const { user_id, service_id } = req.body;
 
@@ -38,18 +45,21 @@ router.post('/', async (req, res) => {
 
     try {
         const db = await connectToDatabase();
-        await db.run(
+        console.log('Adding item to wishlist:', { user_id, service_id });
+
+        const result = await db.run(
             'INSERT INTO Wishlist (added_date, user_id, service_id) VALUES (date("now"), ?, ?)',
             [user_id, service_id]
         );
-        res.status(201).json({ message: 'Item added to wishlist successfully' });
+
+        res.status(201).json({ message: 'Item added to wishlist successfully', id: result.lastID });
     } catch (error) {
         console.error('Error adding item to wishlist:', error);
         res.status(500).json({ error: 'Failed to add item to wishlist' });
     }
 });
 
-// Видалити елемент зі списку бажань
+// Удалить элемент из списка желаний
 router.delete('/:wishlist_id', async (req, res) => {
     const { wishlist_id } = req.params;
 
@@ -59,6 +69,8 @@ router.delete('/:wishlist_id', async (req, res) => {
 
     try {
         const db = await connectToDatabase();
+        console.log('Deleting item from wishlist:', wishlist_id);
+
         const result = await db.run(
             'DELETE FROM Wishlist WHERE wishlist_id = ?',
             [wishlist_id]
