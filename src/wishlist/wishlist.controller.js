@@ -3,7 +3,6 @@ import { connectToDatabase } from '../../database/database.js';
 
 const router = express.Router();
 
-
 // Получить список желаний для пользователя
 router.get('/', async (req, res) => {
     const { user_id } = req.query;
@@ -11,22 +10,17 @@ router.get('/', async (req, res) => {
     if (!user_id) {
         return res.status(400).json({ error: 'User ID is required' });
     }
-    if (wishlist.length === 0) {
-        return res.status(200).json({ message: 'No wishlist items found', wishlist: [] });
-    }
-    
-    res.status(200).json({ wishlist }); // Возвращаем массив в объекте
-    
+
     try {
         const db = await connectToDatabase();
         console.log('Fetching wishlist for user_id:', user_id);
 
         const wishlist = await db.all(
-            `SELECT w.wishlist_id, w.added_date, s.name AS service_name, u.name AS provider_name
+            SELECT w.wishlist_id, w.added_date, s.name AS service_name, u.name AS provider_name
             FROM Wishlist w
             JOIN Service s ON w.service_id = s.service_id
             JOIN User u ON w.user_id = u.user_id
-            WHERE w.user_id = ?;`, 
+            WHERE w.user_id = ?;, 
             [user_id]
         );
 
