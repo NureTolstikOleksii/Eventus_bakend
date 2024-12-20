@@ -84,5 +84,20 @@ router.get('/customer/profile', (req, res) => {
     });
 });
 
+// профіль постачалника для постачалника
+router.get('/provider/profile', async (req, res) => {
+    try {
+        if (!req.session.userId || req.session.userRole !== 'provider') {
+            return res.status(403).json({ message: 'Access denied' });
+        }
+
+        const profile = await ProfileService.getProviderProfile(req.session.userId);
+
+        res.status(200).json(profile);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 
 export const profileRouter = router;

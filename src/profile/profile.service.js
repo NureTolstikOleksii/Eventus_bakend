@@ -81,5 +81,28 @@ export class ProfileService {
         } catch (error) {
             throw new Error('Failed to fetch customer basic info');
         }
-    }    
+    }   
+    
+    // профіль постачалника для постачалника
+    async getProviderProfile(userId) {
+        try {
+            const provider = await this.db.get(
+                `SELECT name, photo_url, company_name, rating FROM Provider WHERE provider_id = $1`,
+                [userId]
+            );
+
+            if (!provider) {
+                throw new Error('Provider not found');
+            }
+
+            return {
+                name: provider.name,
+                photo_url: provider.photo_url,
+                company_name: provider.company_name,
+                rating: provider.rating,
+            };
+        } catch (error) {
+            throw new Error(`Error fetching provider profile: ${error.message}`);
+        }
+    }
 }
