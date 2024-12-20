@@ -84,9 +84,9 @@ export class ProfileService {
     }   
     
     // профіль постачалника для постачалника
-    async getProviderProfile(userId) {
+    async getProviderProfile(db,userId) {
         try {
-            const provider = await this.db.get(
+            const provider = await db.get(
                 `SELECT name, photo_url, company_name, rating FROM Provider WHERE provider_id = $1`,
                 [userId]
             );

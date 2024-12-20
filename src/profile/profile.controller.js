@@ -91,7 +91,7 @@ router.get('/provider/profile', async (req, res) => {
             return res.status(403).json({ message: 'Access denied' });
         }
 
-        const profile = await ProfileService.getProviderProfile(req.session.userId);
+        const profile = await profileService.getProviderProfile(req.session.userId);
 
         res.status(200).json(profile);
     } catch (error) {
