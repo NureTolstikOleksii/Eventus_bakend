@@ -86,14 +86,10 @@ export class ProfileService {
     // профіль постачалника для постачалника
     async getProviderProfile(db,userId) {
         try {
-            const provider = await db.get(
+            const provider = await db.query(
                 `SELECT name, photo_url, company_name, rating FROM Provider WHERE provider_id = $1`,
                 [userId]
             );
-
-            if (!provider) {
-                throw new Error('Provider not found');
-            }
 
             return {
                 name: provider.name,
