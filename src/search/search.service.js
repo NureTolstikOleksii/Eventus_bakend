@@ -1,17 +1,21 @@
 export class SearchService {
-    // Метод для пошуку послуг за ключовим словом
-    async searchServices(db, keyword) {
+  // Метод для поиска услуг по ключевому слову
+  async searchServices(db, keyword) {
       try {
-        const sqlQuery = 'SELECT * FROM Services WHERE name LIKE ? OR description LIKE ?';
-        const paramsArray = [`%${keyword}%`, `%${keyword}%`];
-  
-        const results = await db.all(sqlQuery, paramsArray);
-  
-        return results;
+          const sqlQuery = `
+              SELECT * 
+              FROM "Service" 
+              WHERE name ILIKE $1 OR description ILIKE $2
+          `;
+          const paramsArray = [`%${keyword}%`, `%${keyword}%`];
+
+          const result = await db.query(sqlQuery, paramsArray);
+
+          return result.rows;
       } catch (error) {
-        throw new Error('Error searching services: ' + error.message);
+          throw new Error('Error searching services: ' + error.message);
       }
-    }
   }
-  
-  export default new SearchService();
+}
+
+export default new SearchService();

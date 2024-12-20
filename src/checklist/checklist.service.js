@@ -1,66 +1,64 @@
 export class ChecklistService {
+    // Добавление новой записи в список
     async addNote(db, userId, note) {
         try {
-            const result = await db.run(
+            const result = await db.query(
                 `
-                INSERT INTO Checklist (note, user_id)
-                VALUES (?, ?);
+                INSERT INTO "Checklist" (note, user_id)
+                VALUES ($1, $2)
+                RETURNING checklist_id, note, user_id;
                 `,
                 [note, userId]
             );
 
-            // Повертаємо дані про створений запис
-            return {
-                checklist_id: result.lastID,
-                note,
-                user_id: userId,
-            };
+            // Возвращаем данные о созданной записи
+            return result.rows[0];
         } catch (error) {
             console.error('Error in addNote:', error.message);
-            throw error;
+            throw new Error('Failed to add note: ' + error.message);
         }
     }
 
+    // Получение всех записей пользователя
     async getNotes(db, userId) {
         try {
-            // SQL-запит для отримання всіх записів користувача
-            const notes = await db.all(
+            const result = await db.query(
                 `
                 SELECT checklist_id, note
-                FROM Checklist
-                WHERE user_id = ?;
+                FROM "Checklist"
+                WHERE user_id = $1;
                 `,
                 [userId]
             );
 
-            if (!notes || notes.length === 0) {
-                return []; // Якщо записи відсутні
-            }
-
-            console.log('Notes fetched:', notes); // Для дебагу
-            return notes;
+            // Если записей нет, возвращаем пустой массив
+            return result.rows;
         } catch (error) {
             console.error('Error in getNotes:', error.message);
-            throw error;
+            throw new Error('Failed to fetch notes: ' + error.message);
         }
     }
 
+    // Удаление записи по ID
     async deleteNote(db, userId, checklistId) {
         try {
-            // SQL-запит для видалення запису
-            const result = await db.run(
+            const result = await db.query(
                 `
-                DELETE FROM Checklist
-                WHERE checklist_id = ? AND user_id = ?;
+                DELETE FROM "Checklist"
+                WHERE checklist_id = $1 AND user_id = $2
+                RETURNING checklist_id;
                 `,
                 [checklistId, userId]
             );
 
-            console.log('Delete result:', result); // Для дебагу
-            return result;
+            if (result.rowCount === 0) {
+                throw new Error('Note not found or access denied');
+            }
+
+            return { message: 'Note deleted successfully', checklist_id: checklistId };
         } catch (error) {
             console.error('Error in deleteNote:', error.message);
-            throw error;
+            throw new Error('Failed to delete note: ' + error.message);
         }
     }
 }

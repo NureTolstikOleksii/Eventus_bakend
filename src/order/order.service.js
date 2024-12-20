@@ -1,11 +1,14 @@
 export class OrderService {
+    // Создание заказа
     async createOrder(db, orderData) {
         const { user_id, service_id, special_requests } = orderData;
 
-        const service = await db.get(
-            `SELECT * FROM Service WHERE service_id = ?;`,
+        // Получение данных о сервисе
+        const serviceResult = await db.query(
+            `SELECT * FROM "Service" WHERE service_id = $1`,
             [service_id]
         );
+        const service = serviceResult.rows[0];
 
         if (!service) {
             throw new Error('Service not found');
@@ -13,56 +16,57 @@ export class OrderService {
 
         const date = new Date().toISOString().split('T')[0];
 
-        const result = await db.run(
+        // Создание заказа
+        const result = await db.query(
             `
-            INSERT INTO Orders (name, date, total_price, user_id, service_id, special_requests)
-            VALUES (?, ?, ?, ?, ?, ?);
+            INSERT INTO "Orders" (name, date, total_price, user_id, service_id, special_requests)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING order_id;
             `,
             [
-                service.name, // Use the service name for the order name
+                service.name, // Используем имя сервиса как имя заказа
                 date,
-                service.price, // Use the service price for the total price
+                service.price, // Используем цену сервиса как итоговую цену
                 user_id,
                 service_id,
-                special_requests || null, // If no special requests, set as NULL
+                special_requests || null, // Если нет спецзапросов, передаем NULL
             ]
         );
 
         return {
-            orderId: result.lastID,
+            orderId: result.rows[0].order_id,
             ...orderData,
             date,
             total_price: service.price,
         };
     }
 
+    // Получение страницы заказа
     async getOrderPage(db, userId, serviceId) {
         try {
-            // Отримуємо дані про послугу
-            const service = await db.get(
-                `SELECT name, price FROM Service WHERE service_id = ?;`,
+            // Получение данных о сервисе
+            const serviceResult = await db.query(
+                `SELECT name, price FROM "Service" WHERE service_id = $1`,
                 [serviceId]
             );
+            const service = serviceResult.rows[0];
 
             if (!service) {
                 throw new Error('Service not found');
             }
 
-            console.log('Service fetched:', service);
-
-            // Отримуємо дані про користувача
-            const user = await db.get(
-                `SELECT name, phone_number FROM User WHERE user_id = ?;`,
+            // Получение данных о пользователе
+            const userResult = await db.query(
+                `SELECT name, phone_number FROM "User" WHERE user_id = $1`,
                 [userId]
             );
+            const user = userResult.rows[0];
 
             if (!user) {
                 throw new Error('User not found');
             }
 
-            console.log('User fetched:', user);
-
-            // Форматуємо дату та час
+            // Форматируем дату и время
             const currentDate = new Date();
             const formattedDate = `${currentDate.toISOString().split('T')[0]} ${
                 currentDate.toTimeString().split(' ')[0].slice(0, 5)
@@ -81,49 +85,40 @@ export class OrderService {
         }
     }
 
+    // Получение заказов пользователя
     async getUserOrders(db, userId) {
         try {
-            const orders = await db.all(
-                `SELECT name, date FROM Orders WHERE user_id = ?;`,
+            const result = await db.query(
+                `SELECT name, date FROM "Orders" WHERE user_id = $1`,
                 [userId]
             );
 
-            if (!orders || orders.length === 0) {
-                return []; 
-            }
-
-            console.log('Orders fetched:', orders);
-            return orders;
+            return result.rows;
         } catch (error) {
             console.error('Error in getUserOrders:', error.message);
             throw error;
         }
     }
 
+    // Получение заказов поставщика
     async getProviderOrders(db, providerId) {
         try {
-            // SQL-запит для отримання замовлень постачальника
-            const orders = await db.all(
+            const result = await db.query(
                 `
                 SELECT 
-                    o.date || ' ' || strftime('%H:%M', 'now') AS date_time,
+                    o.date || ' ' || TO_CHAR(NOW(), 'HH24:MI') AS date_time,
                     s.name AS service_name,
                     o.special_requests,
                     u.name AS customer_name
-                FROM Orders o
-                INNER JOIN Service s ON o.service_id = s.service_id
-                INNER JOIN User u ON o.user_id = u.user_id
-                WHERE s.provider_id = ?;
+                FROM "Orders" o
+                INNER JOIN "Service" s ON o.service_id = s.service_id
+                INNER JOIN "User" u ON o.user_id = u.user_id
+                WHERE s.provider_id = $1
                 `,
                 [providerId]
             );
 
-            if (!orders || orders.length === 0) {
-                return []; 
-            }
-
-            console.log('Provider orders fetched:', orders);
-            return orders;
+            return result.rows;
         } catch (error) {
             console.error('Error in getProviderOrders:', error.message);
             throw error;

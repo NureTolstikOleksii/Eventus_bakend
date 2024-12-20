@@ -14,11 +14,11 @@ router.get('/', async (req, res) => {
 
     try {
         const db = await connectToDatabase();
-        const reviews = await db.all(
-            'SELECT * FROM Review WHERE service_id = ?',
-            serviceId
+        const result = await db.query(
+            'SELECT * FROM "Review" WHERE service_id = $1',
+            [serviceId]
         );
-        res.json(reviews);
+        res.json(result.rows);
     } catch (error) {
         console.error('Error fetching reviews:', error);
         res.status(500).json({ error: 'Failed to fetch reviews' });
@@ -31,8 +31,11 @@ router.post('/', validateReviewData, async (req, res) => {
 
     try {
         const db = await connectToDatabase();
-        await db.run(
-            'INSERT INTO Review (rating, comment, review_date, service_id, user_id) VALUES (?, ?, date("now"), ?, ?)',
+        await db.query(
+            `
+            INSERT INTO "Review" (rating, comment, review_date, service_id, user_id)
+            VALUES ($1, $2, CURRENT_DATE, $3, $4)
+            `,
             [rating, comment, service_id, user_id]
         );
         res.json({ message: 'Review added successfully' });
@@ -44,4 +47,3 @@ router.post('/', validateReviewData, async (req, res) => {
 
 // Export the router
 export const reviewsRouter = router;
-

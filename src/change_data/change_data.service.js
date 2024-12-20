@@ -1,155 +1,137 @@
+import bcrypt from 'bcryptjs';
+
 export class ChangeDataService {
-   
-    //Перевірки
     #passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[._-])[A-Za-z\d._-]{8,128}$/;
     #nameRegex = /^[A-Za-z]+$/;
     #organizationNameRegex = /^[A-Za-z]+$/;
     #emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    // Зміна електронної пошти замовника
+    // Изменение email пользователя
     async updateUserEmail(db, userId, newEmail) {
         try {
-            // Проверка формата нового адреса электронной почты
             if (!this.#emailRegex.test(newEmail)) {
                 throw new Error('Please enter a valid email address');
             }
 
-            // Обновление электронной почты клиента
-            await db.run('UPDATE User SET email = ? WHERE user_id = ?', [newEmail, userId]);
+            await db.query(`UPDATE "User" SET email = $1 WHERE user_id = $2`, [newEmail, userId]);
             return { message: 'Email updated successfully' };
         } catch (error) {
             throw new Error('Error updating email: ' + error.message);
         }
     }
-    //Зміна паролю постачальника 
 
+    // Изменение пароля пользователя
     async updateUserPassword(db, userId, oldPassword, newPassword, confirmPassword) {
         try {
             if (newPassword !== confirmPassword) {
                 throw new Error('New password and confirmed password do not match');
             }
-    
+
             if (!this.#passwordRegex.test(newPassword)) {
                 throw new Error('Password does not meet complexity requirements');
             }
-    
-            // Проверка старого пароля
-            const user = await db.get('SELECT password FROM User WHERE user_id = ?', [userId]);
+
+            const result = await db.query(`SELECT password FROM "User" WHERE user_id = $1`, [userId]);
+            const user = result.rows[0];
             if (!user || !(await bcrypt.compare(oldPassword, user.password))) {
                 throw new Error('Old password is incorrect');
             }
-    
-            // Хеширование нового пароля
+
             const hashedPassword = await bcrypt.hash(newPassword, 10);
-    
-            // Обновление пароля
-            await db.run('UPDATE User SET password = ? WHERE user_id = ?', [hashedPassword, userId]);
+
+            await db.query(`UPDATE "User" SET password = $1 WHERE user_id = $2`, [hashedPassword, userId]);
             return { message: 'Password updated successfully' };
         } catch (error) {
             throw new Error('Error updating password: ' + error.message);
         }
     }
 
-    //Зміна імені замовника
+    // Изменение имени пользователя
     async updateUserName(db, userId, newName) {
         try {
             if (!this.#nameRegex.test(newName)) {
                 throw new Error('Name must contain only Latin letters, without spaces or special characters');
             }
 
-            await db.run('UPDATE User SET name = ? WHERE user_id = ?', [newName, userId]);
+            await db.query(`UPDATE "User" SET name = $1 WHERE user_id = $2`, [newName, userId]);
             return { message: 'User name updated successfully' };
         } catch (error) {
             throw new Error('Error updating user name: ' + error.message);
         }
     }
 
-    //Зміна імені постачальника
-    async updateUserName(db, providerId, newName) {
-        try {
-            if (!this.#nameRegex.test(newName)) {
-                throw new Error('Name must contain only Latin letters, without spaces or special characters');
-            }
-
-            await db.run('UPDATE User SET name = ? WHERE user_id = ?', [newName, providerId]);
-            return { message: 'User name updated successfully' };
-        } catch (error) {
-            throw new Error('Error updating user name: ' + error.message);
-        }
-    }
+    // Изменение категории услуг поставщика
     async updateServiceCategory(db, providerId, newCategory) {
         try {
-            // Проверка существования категории в таблице Service_Category
-            const category = await db.get('SELECT * FROM Service_Category WHERE name = ?', [newCategory]);
-            if (!category) {
+            const result = await db.query(`SELECT * FROM "Service_Category" WHERE name = $1`, [newCategory]);
+            if (result.rows.length === 0) {
                 throw new Error('Invalid service category');
             }
 
-            // Обновление категории услуг у поставщика
-            await db.run('UPDATE Provider SET service_category = ? WHERE provider_id = ?', [newCategory, providerId]);
+            await db.query(`UPDATE "Provider" SET service_category = $1 WHERE provider_id = $2`, [newCategory, providerId]);
             return { message: 'Service category updated successfully' };
         } catch (error) {
             throw new Error('Error updating service category: ' + error.message);
         }
     }
 
-    //Зміна назви організації постачальника
+    // Изменение имени организации поставщика
     async updateOrganizationName(db, providerId, newOrganizationName) {
         try {
             if (!this.#organizationNameRegex.test(newOrganizationName)) {
                 throw new Error('Organization name must contain only allowed characters');
             }
 
-            const existingOrganization = await db.get('SELECT * FROM Provider WHERE company_name = ?', [newOrganizationName]);
-            if (existingOrganization) {
+            const result = await db.query(`SELECT * FROM "Provider" WHERE company_name = $1`, [newOrganizationName]);
+            if (result.rows.length > 0) {
                 throw new Error('Organization name already registered');
             }
 
-            await db.run('UPDATE Provider SET company_name = ? WHERE provider_id = ?', [newOrganizationName, providerId]);
+            await db.query(`UPDATE "Provider" SET company_name = $1 WHERE provider_id = $2`, [newOrganizationName, providerId]);
             return { message: 'Organization name updated successfully' };
         } catch (error) {
             throw new Error('Error updating organization name: ' + error.message);
         }
     }
 
-    // Зміна контактної інформації постачальника
+    // Обновление контактной информации поставщика
     async updateProviderContactInfo(db, providerId, newPhone, newEmail) {
         try {
-        this.validateContactInfo(newPhone, newEmail);
+            this.validateContactInfo(newPhone, newEmail);
 
-        await db.run(
-            'UPDATE Provider SET phone = ?, email = ? WHERE provider_id = ?',
-            [newPhone || null, newEmail || null, providerId]
-        );
-        return { message: 'Contact information updated successfully' };
+            await db.query(
+                `UPDATE "Provider" SET phone = $1, email = $2 WHERE provider_id = $3`,
+                [newPhone || null, newEmail || null, providerId]
+            );
+            return { message: 'Contact information updated successfully' };
         } catch (error) {
-        throw new Error('Error updating provider contact information: ' + error.message);
+            throw new Error('Error updating provider contact information: ' + error.message);
         }
     }
 
-    // Зміна контактної інформації замовника
+    // Обновление контактной информации пользователя
     async updateUserContactInfo(db, userId, newPhone, newEmail) {
         try {
-        this.validateContactInfo(newPhone, newEmail);
+            this.validateContactInfo(newPhone, newEmail);
 
-        await db.run(
-            'UPDATE User SET phone_number = ?, email = ? WHERE user_id = ?',
-            [newPhone || null, newEmail || null, userId]
-        );
-        return { message: 'Contact information updated successfully' };
+            await db.query(
+                `UPDATE "User" SET phone_number = $1, email = $2 WHERE user_id = $3`,
+                [newPhone || null, newEmail || null, userId]
+            );
+            return { message: 'Contact information updated successfully' };
         } catch (error) {
-        throw new Error('Error updating user contact information: ' + error.message);
-    }
+            throw new Error('Error updating user contact information: ' + error.message);
+        }
     }
 
-    // Загальна функція для перевірки контактної інформації
+    // Общая функция для проверки контактной информации
     validateContactInfo(phone, email) {
-    const phoneRegex = /^\+?[0-9]{7,15}$/;
-    if (phone && !phoneRegex.test(phone)) {
-        throw new Error('Enter a valid phone number');
+        const phoneRegex = /^\+?[0-9]{7,15}$/;
+        if (phone && !phoneRegex.test(phone)) {
+            throw new Error('Enter a valid phone number');
+        }
+        if (email && !this.#emailRegex.test(email)) {
+            throw new Error('Enter a valid email address');
+        }
     }
-    if (email && !this.#emailRegex.test(email)) {
-        throw new Error('Enter a valid email address');
-    }
-    }   
 }

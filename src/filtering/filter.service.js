@@ -8,36 +8,37 @@ export class FilterService {
                 maxPrice = undefined,
             } = filters;
 
-            // Початковий SQL-запит
-            let query = `SELECT * FROM Service WHERE 1=1`;
+            // Начальный SQL-запрос
+            let query = `SELECT * FROM "Service" WHERE 1=1`;
             const queryParams = [];
 
-            // Фільтр за категоріями
+            // Фильтр по категориям
             if (category_ids.length > 0) {
-                query += ` AND category_id IN (${category_ids.map(() => '?').join(', ')})`;
+                const placeholders = category_ids.map((_, index) => `$${queryParams.length + index + 1}`).join(', ');
+                query += ` AND category_id IN (${placeholders})`;
                 queryParams.push(...category_ids);
             }
 
-            // Фільтр за рейтингом
+            // Фильтр по рейтингу
             if (rating !== undefined) {
-                query += ` AND raiting >= ?`;
+                query += ` AND raiting >= $${queryParams.length + 1}`;
                 queryParams.push(rating);
             }
 
-            // Фільтр за мінімальною ціною
+            // Фильтр по минимальной цене
             if (minPrice !== undefined) {
-                query += ` AND price >= ?`;
+                query += ` AND price >= $${queryParams.length + 1}`;
                 queryParams.push(minPrice);
             }
 
-            // Фільтр за максимальною ціною
+            // Фильтр по максимальной цене
             if (maxPrice !== undefined) {
-                query += ` AND price <= ?`;
+                query += ` AND price <= $${queryParams.length + 1}`;
                 queryParams.push(maxPrice);
             }
 
-            const rows = await db.all(query, queryParams);
-            return rows;
+            const result = await db.query(query, queryParams);
+            return result.rows;
         } catch (error) {
             throw new Error(`Error filtering services: ${error.message}`);
         }

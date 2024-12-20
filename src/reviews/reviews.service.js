@@ -12,8 +12,11 @@ export async function getAllReviews(req, res) {
 
     try {
         const db = await connectToDatabase();
-        const reviews = await db.all('SELECT * FROM Review WHERE service_id = ?', serviceId);
-        res.status(200).json(reviews);
+        const result = await db.query(
+            'SELECT * FROM "Review" WHERE service_id = $1',
+            [serviceId]
+        );
+        res.status(200).json(result.rows);
     } catch (error) {
         console.error('Error fetching reviews:', error);
         res.status(500).json({ error: 'Failed to fetch reviews' });
@@ -32,8 +35,11 @@ export async function addReview(req, res) {
 
     try {
         const db = await connectToDatabase();
-        await db.run(
-            'INSERT INTO Review (rating, comment, review_date, service_id, user_id) VALUES (?, ?, date("now"), ?, ?)',
+        await db.query(
+            `
+            INSERT INTO "Review" (rating, comment, review_date, service_id, user_id)
+            VALUES ($1, $2, CURRENT_DATE, $3, $4)
+            `,
             [rating, comment, service_id, user_id]
         );
         res.status(201).json({ message: 'Review added successfully' });
@@ -56,12 +62,16 @@ export async function updateReview(req, res) {
 
     try {
         const db = await connectToDatabase();
-        const result = await db.run(
-            'UPDATE Review SET rating = ?, comment = ? WHERE review_id = ?',
+        const result = await db.query(
+            `
+            UPDATE "Review" 
+            SET rating = $1, comment = $2 
+            WHERE review_id = $3
+            `,
             [rating, comment, reviewId]
         );
 
-        if (result.changes === 0) {
+        if (result.rowCount === 0) {
             return res.status(404).json({ error: 'Review not found' });
         }
 
@@ -80,9 +90,12 @@ export async function deleteReview(req, res) {
 
     try {
         const db = await connectToDatabase();
-        const result = await db.run('DELETE FROM Review WHERE review_id = ?', reviewId);
+        const result = await db.query(
+            'DELETE FROM "Review" WHERE review_id = $1',
+            [reviewId]
+        );
 
-        if (result.changes === 0) {
+        if (result.rowCount === 0) {
             return res.status(404).json({ error: 'Review not found' });
         }
 

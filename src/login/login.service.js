@@ -3,19 +3,31 @@ import bcrypt from 'bcryptjs';
 export class LoginService {
     // Функция для входа пользователя (таблица User)
     async loginUser(db, email, password) {
-        const user = await db.get(`SELECT * FROM User WHERE email = ?`, [email]);
-        if (user && bcrypt.compareSync(password, user.password)) {
-            return user;
+        try {
+            const result = await db.query(`SELECT * FROM "User" WHERE email = $1`, [email]);
+            const user = result.rows[0];
+
+            if (user && bcrypt.compareSync(password, user.password)) {
+                return user;
+            }
+            return null;
+        } catch (error) {
+            throw new Error('Error logging in user: ' + error.message);
         }
-        return null;
     }
 
     // Функция для входа поставщика (таблица Provider)
     async loginProvider(db, email, password) {
-        const provider = await db.get(`SELECT * FROM Provider WHERE email = ?`, [email]);
-        if (provider && bcrypt.compareSync(password, provider.password)) {
-            return provider;
+        try {
+            const result = await db.query(`SELECT * FROM "Provider" WHERE email = $1`, [email]);
+            const provider = result.rows[0];
+
+            if (provider && bcrypt.compareSync(password, provider.password)) {
+                return provider;
+            }
+            return null;
+        } catch (error) {
+            throw new Error('Error logging in provider: ' + error.message);
         }
-        return null;
     }
 }

@@ -1,20 +1,23 @@
 export default class MainScreenService {
-
-    //Головний екран: іконки категорій
+    // Головний екран: отримання послуг за категорією
     async getServicesByCategory(db, categoryName) {
         try {
             // Перевірка наявності категорії
-            const category = await db.get('SELECT * FROM Categories WHERE name = ?', [categoryName]);
+            const categoryResult = await db.query(`SELECT * FROM "Categories" WHERE name = $1`, [categoryName]);
+            const category = categoryResult.rows[0];
+
             if (!category) {
                 throw new Error('Category not found');
             }
-    
+
             // Отримання послуг за категорією
-            const services = await db.all('SELECT * FROM Services WHERE category = ?', [categoryName]);
+            const servicesResult = await db.query(`SELECT * FROM "Services" WHERE category = $1`, [categoryName]);
+            const services = servicesResult.rows;
+
             if (!services || services.length === 0) {
                 throw new Error('No services found for the specified category');
             }
-    
+
             return { message: 'Services retrieved successfully', data: services };
         } catch (error) {
             throw new Error('Error fetching services by category: ' + error.message);
@@ -24,7 +27,8 @@ export default class MainScreenService {
     // Повернення усіх послуг постачальника
     async getServicesByProvider(db, providerId) {
         try {
-            const services = await db.all('SELECT * FROM Service WHERE provider_id = ?', [providerId]);
+            const servicesResult = await db.query(`SELECT * FROM "Service" WHERE provider_id = $1`, [providerId]);
+            const services = servicesResult.rows;
 
             if (!services || services.length === 0) {
                 throw new Error('No services found for the specified provider');
@@ -39,7 +43,8 @@ export default class MainScreenService {
     // Повернення усіх відгуків про послугу
     async getReviewsByService(db, serviceId) {
         try {
-            const reviews = await db.all('SELECT * FROM Review WHERE service_id = ?', [serviceId]);
+            const reviewsResult = await db.query(`SELECT * FROM "Review" WHERE service_id = $1`, [serviceId]);
+            const reviews = reviewsResult.rows;
 
             if (!reviews || reviews.length === 0) {
                 throw new Error('No reviews found for the specified service');
@@ -53,17 +58,18 @@ export default class MainScreenService {
 
     // Повернення топ послуг за рейтингом
     async getTopServices(db) {
-        const limit = 5; // Установлено значение по умолчанию 10
+        const limit = 5; // Установлено значение по умолчанию
         try {
-            const services = await db.all(
-                'SELECT * FROM Service ORDER BY raiting DESC LIMIT ?', 
+            const servicesResult = await db.query(
+                `SELECT * FROM "Service" ORDER BY raiting DESC LIMIT $1`,
                 [limit]
             );
-    
+            const services = servicesResult.rows;
+
             if (!services || services.length === 0) {
                 throw new Error('No services found');
             }
-    
+
             return { message: 'Top services retrieved successfully', data: services };
         } catch (error) {
             throw new Error('Error fetching top services: ' + error.message);
