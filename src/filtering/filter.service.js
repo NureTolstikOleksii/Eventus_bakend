@@ -14,9 +14,10 @@ export class FilterService {
 
             // Фильтр по категориям
             if (category_ids.length > 0) {
-                const placeholders = category_ids.map((_, index) => `$${queryParams.length + index + 1}`).join(', ');
+                const numericCategoryIds = category_ids.map(Number); // Преобразуем в числа
+                const placeholders = numericCategoryIds.map((_, index) => `$${queryParams.length + index + 1}`).join(', ');
                 query += ` AND "category_id" IN (${placeholders})`;
-                queryParams.push(...category_ids);
+                queryParams.push(...numericCategoryIds);
             }
 
             // Фильтр по рейтингу
@@ -36,6 +37,9 @@ export class FilterService {
                 query += ` AND "price" <= $${queryParams.length + 1}`;
                 queryParams.push(maxPrice);
             }
+
+            console.log('Generated query:', query);
+            console.log('Query params:', queryParams);
 
             const result = await db.query(query, queryParams);
             return result.rows;
