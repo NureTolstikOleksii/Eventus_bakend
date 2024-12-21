@@ -79,7 +79,8 @@ async function main() {
             res.status(200).json({
                 userId: req.session.userId,
                 name: req.session.name,
-                role: req.session.userRole, // Роль пользователя
+                role: req.session.userRole,
+                companyName: req.session.companyName // Роль пользователя
             });
         } else {
             res.status(401).json({ message: 'User not logged in' });

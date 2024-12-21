@@ -14,11 +14,22 @@ router.post('/', async (req, res) => {
     try {
         let user = await loginService.loginUser(req.db, email, password);
         let role = 'customer';
+        let companyName = null;
 
         if (!user) {
             // Если в таблице User не найден, проверяем таблицу Provider
             user = await loginService.loginProvider(req.db, email, password);
             role = 'provider'; // Роль, если найден в Provider
+
+            // Если найден поставщик, получаем его организацию
+            if (user) {
+                const query = `SELECT "company_name" FROM "Provider" WHERE "provider_id" = $1`;
+                const result = await req.db.query(query, [user.provider_id]);
+
+                if (result.rows.length > 0) {
+                    companyName = result.rows[0].company_name;
+                }
+            }
         }
 
         if (!user) {
@@ -31,32 +42,14 @@ router.post('/', async (req, res) => {
         req.session.name = user.name;
         req.session.userRole = role;
         req.session.photo = user.photo_url;
+        req.session.companyName = companyName; // Сохраняем имя компании для поставщика (если есть)
+
         console.log('Session data:', req.session);
 
-        res.status(200).json({ message: 'Login successful', role, user });
+        res.status(200).json({ message: 'Login successful', role, user, companyName });
     } catch (error) {
-        console.error('Login error:', error);
+        console.error('Login error:', error.message);
         res.status(500).json({ message: 'Failed to log in', error: error.message });
-    }
-});
-
-router.get('/getOrganization/:providerId', async (req, res) => {
-    const { providerId } = req.params;
-
-    try {
-        const query = `SELECT "company_name" FROM "Provider" WHERE "provider_id" = $1`;
-        const result = await req.db.query(query, [providerId]);
-        
-        console.log('Query result:', result.rows);
-
-        if (result.rows.length > 0) {
-            res.status(200).json({ companyName: result.rows[0].company_name });
-        } else {
-            res.status(404).json({ message: 'Provider not found' });
-        }
-    } catch (error) {
-        console.error('Error fetching organization:', error.message);
-        res.status(500).json({ message: 'Failed to fetch organization', error: error.message });
     }
 });
 
