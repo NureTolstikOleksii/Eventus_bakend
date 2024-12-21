@@ -8,33 +8,40 @@ export class FilterService {
                 maxPrice = undefined,
             } = filters;
 
-            // Начальный SQL-запрос
-            let query = `SELECT * FROM "Service" WHERE 1=1`;
+            // Початковий SQL-запит із JOIN
+            let query = `
+                SELECT s.*, p.photo_url 
+                FROM "Service" s
+                LEFT JOIN "Photo" p ON s.service_id = p.service_id
+                WHERE 1=1
+            `;
             const queryParams = [];
 
-            // Фильтр по категориям
+            // Фільтр за категоріями
             if (category_ids.length > 0) {
-                const numericCategoryIds = category_ids.map(Number); // Преобразуем в числа
+                const numericCategoryIds = category_ids.map(Number); // Перетворюємо в числа
                 const placeholders = numericCategoryIds.map((_, index) => `$${queryParams.length + index + 1}`).join(', ');
-                query += ` AND "category_id" IN (${placeholders})`;
+                query += ` AND s."category_id" IN (${placeholders})`;
                 queryParams.push(...numericCategoryIds);
             }
 
-            // Фильтр по рейтингу, если он не null и не undefined
+            // Фільтр за рейтингом (діапазон ±0.5)
             if (rating !== undefined && rating !== null) {
-                query += ` AND "rating" >= $${queryParams.length + 1}`;
-                queryParams.push(rating);
+                const lowerBound = rating - 0.5;
+                const upperBound = rating + 0.5;
+                query += ` AND s."rating" BETWEEN $${queryParams.length + 1} AND $${queryParams.length + 2}`;
+                queryParams.push(lowerBound, upperBound);
             }
 
-            // Фильтр по минимальной цене
+            // Фільтр за мінімальною ціною
             if (minPrice !== undefined) {
-                query += ` AND "price" >= $${queryParams.length + 1}`;
+                query += ` AND s."price" >= $${queryParams.length + 1}`;
                 queryParams.push(minPrice);
             }
 
-            // Фильтр по максимальной цене
+            // Фільтр за максимальною ціною
             if (maxPrice !== undefined) {
-                query += ` AND "price" <= $${queryParams.length + 1}`;
+                query += ` AND s."price" <= $${queryParams.length + 1}`;
                 queryParams.push(maxPrice);
             }
 
