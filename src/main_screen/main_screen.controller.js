@@ -49,4 +49,19 @@ router.get('/top_services', async (req, res) => {
     }
 });
 
+// Маршрут для получения топ-пакетов услуг
+router.get('/top-packages', async (req, res) => {
+    try {
+        const topPackages = await mainScreenService.getTopPackages(req.db);
+
+        if (!topPackages || topPackages.length === 0) {
+            res.status(200).json({ message: 'Нет доступных пакетов услуг.' });
+        } else {
+            res.status(200).json(topPackages);
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 export const mainScreenRouter = router;

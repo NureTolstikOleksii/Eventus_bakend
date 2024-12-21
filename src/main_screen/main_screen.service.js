@@ -88,4 +88,38 @@ export default class MainScreenService {
         }
     }
 
+    // Повернення топ пакетів за рейтингом
+    async getTopPackages(db) {
+        const limit = 5; // Установлено значение по умолчанию
+        try {
+            const packagesResult = await db.query(
+                `
+                SELECT 
+                    sp.package_id, 
+                    sp.name, 
+                    sp.description, 
+                    sp.price, 
+                    sp.services, 
+                    sp.duration, 
+                    sp.provider_id, 
+                    sp.photo_url
+                FROM "Service_Package" sp
+                ORDER BY sp.price DESC
+                LIMIT $1
+                `,
+                [limit]
+            );
+            const packages = packagesResult.rows;
+
+            if (!packages || packages.length === 0) {
+                throw new Error('No packages found');
+            }
+
+            return { message: 'Top packages retrieved successfully', data: packages };
+        } catch (error) {
+            throw new Error('Error fetching top packages: ' + error.message);
+        }
+    }
+
+
 }
