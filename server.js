@@ -15,7 +15,7 @@ import { orderRouter } from './src/order/order.controller.js';
 import { checklistRouter } from './src/checklist/checklist.controller.js';
 import { reviewsRouter } from './src/reviews/reviews.controller.js';
 import { wishlistRouter } from './src/wishlist/wishlist.controller.js';
-import { checklistRouter } from './checklist.controller.js';
+
 
 dotenv.config();
 
