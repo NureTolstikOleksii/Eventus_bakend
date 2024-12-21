@@ -15,25 +15,25 @@ export class FilterService {
             // Фильтр по категориям
             if (category_ids.length > 0) {
                 const placeholders = category_ids.map((_, index) => `$${queryParams.length + index + 1}`).join(', ');
-                query += ` AND category_id IN (${placeholders})`;
+                query += ` AND "category_id" IN (${placeholders})`;
                 queryParams.push(...category_ids);
             }
 
             // Фильтр по рейтингу
             if (rating !== undefined) {
-                query += ` AND raiting >= $${queryParams.length + 1}`;
+                query += ` AND "rating" >= $${queryParams.length + 1}`;
                 queryParams.push(rating);
             }
 
             // Фильтр по минимальной цене
             if (minPrice !== undefined) {
-                query += ` AND price >= $${queryParams.length + 1}`;
+                query += ` AND "price" >= $${queryParams.length + 1}`;
                 queryParams.push(minPrice);
             }
 
             // Фильтр по максимальной цене
             if (maxPrice !== undefined) {
-                query += ` AND price <= $${queryParams.length + 1}`;
+                query += ` AND "price" <= $${queryParams.length + 1}`;
                 queryParams.push(maxPrice);
             }
 
