@@ -46,9 +46,11 @@ router.get('/getOrganization/:providerId', async (req, res) => {
     try {
         const query = `SELECT "company_name" FROM "Provider" WHERE "provider_id" = $1`;
         const result = await req.db.query(query, [providerId]);
+        
+        console.log('Query result:', result.rows);
 
         if (result.rows.length > 0) {
-            res.status(200).json({ organizationName: result.rows[0].organization_name });
+            res.status(200).json({ companyName: result.rows[0].company_name });
         } else {
             res.status(404).json({ message: 'Provider not found' });
         }
