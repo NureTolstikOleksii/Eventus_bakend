@@ -61,7 +61,19 @@ export default class MainScreenService {
         const limit = 5; // Установлено значение по умолчанию
         try {
             const servicesResult = await db.query(
-                `SELECT * FROM "Service" ORDER BY "rating" DESC LIMIT $1`,
+                `
+                SELECT 
+                    s.service_id, 
+                    s.name, 
+                    s.description, 
+                    s.price, 
+                    s.rating, 
+                    p.photo_url
+                FROM "Service" s
+                LEFT JOIN "Photo" p ON s."service_id" = p."service_id"
+                ORDER BY s."rating" DESC
+                LIMIT $1
+                `,
                 [limit]
             );
             const services = servicesResult.rows;
@@ -75,4 +87,5 @@ export default class MainScreenService {
             throw new Error('Error fetching top services: ' + error.message);
         }
     }
+
 }
