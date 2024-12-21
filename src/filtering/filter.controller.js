@@ -14,4 +14,13 @@ router.post('/', async (req, res) => {
     }
 });
 
+router.get('/categories', async (req, res) => {
+    try {
+        const result = await req.db.query('SELECT "category_id", "name" FROM "Service_Category"');
+        res.status(200).json(result.rows);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 export const filterRouter = router;
