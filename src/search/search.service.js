@@ -5,7 +5,7 @@ export class SearchService {
           const sqlQuery = `
               SELECT * 
               FROM "Service" 
-              WHERE name ILIKE $1 OR description ILIKE $2
+              WHERE "name" ILIKE $1 OR "description" ILIKE $2
           `;
           const paramsArray = [`%${keyword}%`, `%${keyword}%`];
 
