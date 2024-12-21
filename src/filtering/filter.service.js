@@ -20,8 +20,8 @@ export class FilterService {
                 queryParams.push(...numericCategoryIds);
             }
 
-            // Фильтр по рейтингу
-            if (rating !== undefined) {
+            // Фильтр по рейтингу, если он не null и не undefined
+            if (rating !== undefined && rating !== null) {
                 query += ` AND "rating" >= $${queryParams.length + 1}`;
                 queryParams.push(rating);
             }
