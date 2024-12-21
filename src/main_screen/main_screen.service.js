@@ -61,7 +61,7 @@ export default class MainScreenService {
         const limit = 5; // Установлено значение по умолчанию
         try {
             const servicesResult = await db.query(
-                `SELECT * FROM "Service" ORDER BY raiting DESC LIMIT $1`,
+                `SELECT * FROM "Service" ORDER BY "rating" DESC LIMIT $1`,
                 [limit]
             );
             const services = servicesResult.rows;
