@@ -10,9 +10,13 @@ export class FilterService {
 
             // Початковий SQL-запит із JOIN
             let query = `
-                SELECT s.*, p.photo_url 
+                SELECT 
+                    s.*, 
+                    p.photo_url, 
+                    pr.name AS provider_name
                 FROM "Service" s
                 LEFT JOIN "Photo" p ON s.service_id = p.service_id
+                LEFT JOIN "Provider" pr ON s.provider_id = pr.provider_id
                 WHERE 1=1
             `;
             const queryParams = [];

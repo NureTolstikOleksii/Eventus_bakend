@@ -104,8 +104,10 @@ export default class MainScreenService {
                     sp.services, 
                     sp.duration, 
                     sp.provider_id, 
-                    sp.photo_url
+                    sp.photo_url,
+                    pr.name AS provider_name
                 FROM "Service_Package" sp
+                LEFT JOIN "Provider" pr ON sp."provider_id" = pr."provider_id"
                 ORDER BY sp.price DESC
                 LIMIT $1
                 `,
@@ -122,6 +124,5 @@ export default class MainScreenService {
             throw new Error('Error fetching top packages: ' + error.message);
         }
     }
-
 
 }
