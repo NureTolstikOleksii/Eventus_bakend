@@ -20,7 +20,7 @@ router.get('/get', async (req, res) => {
                 w."wishlist_id", 
                 w."added_date", 
                 s."name" AS "service_name", 
-                u."name" AS "provider_name"
+                u."name" AS "provider_name",
                 s."service_id"
             FROM "Wishlist" w
             JOIN "Service" s ON w."service_id" = s."service_id"
