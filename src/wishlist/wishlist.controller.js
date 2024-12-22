@@ -4,7 +4,7 @@ import { connectToDatabase } from '../../database/database.js';
 const router = express.Router();
 
 // Получить список желаний для пользователя
-router.get('/', async (req, res) => {
+router.get('/get', async (req, res) => {
     const { user_id } = req.query;
 
     if (!user_id) {
@@ -22,9 +22,9 @@ router.get('/', async (req, res) => {
                 w.added_date, 
                 s.name AS service_name, 
                 u.name AS provider_name
-            FROM Wishlist w
-            JOIN Service s ON w.service_id = s.service_id
-            JOIN "User" u ON w.user_id = u.user_id
+            FROM "Wishlist" w
+            JOIN "Service" s ON w."service_id" = s."service_id"
+            JOIN "User" u ON w."user_id" = u."user_id"
             WHERE w.user_id = $1
             `,
             [user_id]
@@ -37,7 +37,7 @@ router.get('/', async (req, res) => {
         res.status(200).json(result.rows);
     } catch (error) {
         console.error('Error fetching wishlist:', error);
-        res.status(500).json({ error: 'Failed to fetch wishlist' });
+        res.status(500).json({ error: 'Failed to fetch wishlist', details: error.message });
     }
 });
 
@@ -55,7 +55,7 @@ router.post('/', async (req, res) => {
 
         const result = await db.query(
             `
-            INSERT INTO Wishlist (added_date, user_id, service_id) 
+            INSERT INTO "Wishlist" (added_date, user_id, service_id) 
             VALUES (NOW(), $1, $2) 
             RETURNING wishlist_id
             `,
@@ -83,9 +83,9 @@ router.delete('/:wishlist_id', async (req, res) => {
 
         const result = await db.query(
             `
-            DELETE FROM Wishlist 
-            WHERE wishlist_id = $1
-            RETURNING wishlist_id
+            DELETE FROM "Wishlist" 
+            WHERE "wishlist_id" = $1
+            RETURNING "wishlist_id"
             `,
             [wishlist_id]
         );
