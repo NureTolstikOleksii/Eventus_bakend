@@ -119,9 +119,8 @@ export class ProfileService {
             throw new Error('Failed to fetch provider profile: ' + error.message);
         }
     }
-
-    //Сповіщення постачальника
-async function getProviderNotifications(db, providerId) {
+//Сповіщення постачальника
+    async getProviderNotifications(db, providerId) {
     try {
         const query = `
             SELECT n.text AS notification_text, n.created_at AS notification_time
@@ -138,4 +137,5 @@ async function getProviderNotifications(db, providerId) {
     }
 }
 
+    
 }

@@ -104,18 +104,13 @@ router.get('/notifications', async (req, res) => {
     if (!req.session.userId || req.session.userRole !== 'provider') {
         return res.status(403).json({ message: 'Access denied' });
     }
-
-    const providerId = req.session.userId; // Отримання provider_id із сесії
-
     try {
-        const notifications = await notificationService.getProviderNotifications(req.db, providerId);
+        const notifications = await notificationService.getProviderNotifications(req.db, req.session.userId);
         res.status(200).json(notifications);
     } catch (error) {
         console.error('Error fetching notifications:', error.message);
         res.status(500).json({ message: 'Failed to fetch notifications', error: error.message });
     }
 });
-
-
 
 export const profileRouter = router;
