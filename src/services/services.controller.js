@@ -90,28 +90,46 @@ router.get('/provider/:providerId/packages', async (req, res) => {
     }
 });
 // Маршрут для добавления новой услуги
+// services.controller.js (пример)
 router.post('/', async (req, res) => {
-    const { name, description, photo_url, price, location_id, provider_id, category_id } = req.body;
-
+    const {
+      name,
+      description,
+      price,
+      provider_id,
+      category_id,
+      location_name,
+      location_address,
+    } = req.body;
+  
     if (!name || !provider_id) {
-        return res.status(400).json({ error: 'Name and Provider ID are required' });
+      return res.status(400).json({ error: 'Name and Provider ID are required' });
     }
-
+  
     try {
-        const newService = await servicesService.addService(req.db, {
-            name,
-            description,
-            photo_url,
-            price,
-            location_id,
-            provider_id,
-            category_id,
-        });
-        res.status(201).json(newService);
+      // 1. Находим или создаём Location (name = город, address = ...)
+      let location_id = await servicesService.findOrCreateLocation(
+        req.db, 
+        location_name, 
+        location_address
+      );
+  
+      // 2. Создаём услугу
+      const newService = await servicesService.addService(req.db, {
+        name,
+        description,
+        price,
+        provider_id,
+        category_id,
+        location_id,
+      });
+  
+      res.status(201).json(newService);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+      res.status(500).json({ error: error.message });
     }
-});
+  });
+  
 
 // Маршрут для подтверждения удаления услуги
 router.get('/:serviceId/confirm-delete', async (req, res) => {
@@ -132,6 +150,61 @@ router.delete('/:serviceId', async (req, res) => {
     try {
         const deleteResult = await servicesService.deleteService(req.db, serviceId);
         res.status(200).json(deleteResult);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Маршрут для добавления нового пакета услуг
+router.post('/provider/:providerId/packages', async (req, res) => {
+    const { providerId } = req.params;
+    // В body придут поля: photo_url, name, description, price, duration, services (и т.д.)
+    const { photo_url, name, description, price, duration, services } = req.body;
+
+    // Проверим минимум необходимые поля
+    if (!name || !providerId) {
+        return res.status(400).json({ error: 'Name and Provider ID are required' });
+    }
+
+    try {
+        const newPackage = await servicesService.addServicePackage(req.db, {
+            provider_id: providerId,
+            photo_url,
+            name,
+            description,
+            price,
+            duration,
+            services,
+        });
+        res.status(201).json(newPackage);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Маршрут для получения ВСЕХ услуг провайдера
+router.get('/provider/:providerId/services', async (req, res) => {
+    const { providerId } = req.params;
+  
+    try {
+        const services = await servicesService.getServicesForProvider(req.db, providerId);
+        
+        if (!services || services.length === 0) {
+            return res.status(200).json({ message: 'Нет услуг у данного провайдера.' });
+        }
+        res.status(200).json(services);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+  });
+  
+// Маршрут для получения списка всех категорий (Service_Category)
+router.get('/categories', async (req, res) => {
+    try {
+        // Вызываем метод из servicesService
+        const categories = await servicesService.getAllCategories(req.db);
+        // Отдаём массив категорий в ответ
+        res.status(200).json(categories);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

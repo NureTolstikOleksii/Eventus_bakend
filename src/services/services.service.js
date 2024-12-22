@@ -107,27 +107,31 @@ export class ServicesService {
     // Добавление услуги
     async addService(db, serviceData) {
         try {
-            const query = `
-                INSERT INTO "Service" (name, description, photo_url, price, location_id, provider_id, category_id)
-                VALUES ($1, $2, $3, $4, $5, $6, $7)
-                RETURNING service_id
-            `;
-            const params = [
-                serviceData.name,
-                serviceData.description,
-                serviceData.photo_url,
-                serviceData.price,
-                serviceData.location_id,
-                serviceData.provider_id,
-                serviceData.category_id,
-            ];
-            const result = await db.query(query, params);
-
-            return { message: 'Service added successfully', serviceId: result.rows[0].service_id };
+          const query = `
+            INSERT INTO "Service" (name, description, price, provider_id, category_id, location_id)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING service_id
+          `;
+          const params = [
+            serviceData.name,
+            serviceData.description,
+            serviceData.price || 0,
+            serviceData.provider_id,
+            serviceData.category_id || null,
+            serviceData.location_id || null,
+          ];
+          const result = await db.query(query, params);
+      
+          return { 
+            message: 'Service added successfully', 
+            serviceId: result.rows[0].service_id 
+          };
         } catch (error) {
-            throw new Error('Failed to add service: ' + error.message);
+          throw new Error('Failed to add service: ' + error.message);
         }
     }
+      
+      
 
     // Проверка возможности удаления услуги
     async confirmDeleteService(db, serviceId) {
@@ -164,4 +168,96 @@ export class ServicesService {
             throw new Error('Failed to delete service: ' + error.message);
         }
     }
+
+    // Добавление нового пакета в таблицу "Service_Package"
+async addServicePackage(db, packageData) {
+    try {
+        const { provider_id, photo_url, name, description, price, duration, services } = packageData;
+
+        const query = `
+            INSERT INTO "Service_Package" 
+                (provider_id, photo_url, name, description, price, duration, services)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            RETURNING package_id
+        `;
+
+        const params = [
+            provider_id,
+            photo_url,
+            name,
+            description,
+            price,
+            duration,
+            services,
+        ];
+
+        const result = await db.query(query, params);
+
+        return {
+            message: 'Package added successfully',
+            package_id: result.rows[0].package_id,
+        };
+    } catch (error) {
+        throw new Error('Failed to add package: ' + error.message);
+    }
+}
+
+// Получить все услуги конкретного провайдера
+async getServicesForProvider(db, providerId) {
+    try {
+        const query = `
+            SELECT service_id, name, description, photo_url, price
+            FROM "Service"
+            WHERE provider_id = $1
+        `;
+        const result = await db.query(query, [providerId]);
+        return result.rows;
+    } catch (error) {
+        throw new Error('Failed to retrieve services for the provider: ' + error.message);
+    }
+}
+
+async findOrCreateLocation(db, locationName, locationAddress) {
+    try {
+      // 1. Проверяем, есть ли уже такая запись
+      const checkQuery = `
+        SELECT location_id 
+        FROM "Location"
+        WHERE name = $1
+          AND address = $2
+        LIMIT 1
+      `;
+      const checkRes = await db.query(checkQuery, [locationName, locationAddress]);
+      if (checkRes.rows.length > 0) {
+        return checkRes.rows[0].location_id;
+      }
+  
+      // 2. Если нет, вставляем новую
+      const insertQuery = `
+        INSERT INTO "Location" (name, address)
+        VALUES ($1, $2)
+        RETURNING location_id
+      `;
+      const insertRes = await db.query(insertQuery, [locationName, locationAddress]);
+      return insertRes.rows[0].location_id;
+    } catch (error) {
+      throw new Error('Failed to find or create location: ' + error.message);
+    }
+  }
+  
+  async getAllCategories(db) {
+    try {
+        const query = `
+            SELECT category_id, name
+            FROM "Service_Category"
+        `;
+        const result = await db.query(query);
+        // Возвращаем массив объектов { category_id, name }
+        return result.rows;
+    } catch (error) {
+        throw new Error('Failed to retrieve categories: ' + error.message);
+    }
+}
+
+
 }
