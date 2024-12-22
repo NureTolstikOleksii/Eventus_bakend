@@ -1,5 +1,4 @@
 import express from 'express';
-import { connectToDatabase } from '../../database/database.js';
 
 const router = express.Router();
 
@@ -12,7 +11,7 @@ router.get('/get', async (req, res) => {
     }
 
     try {
-        const db = await connectToDatabase();
+        const db = req.db; // Используем базу данных из `req`
         console.log('Fetching wishlist for user_id:', user_id);
 
         const result = await db.query(
@@ -50,7 +49,7 @@ router.post('/', async (req, res) => {
     }
 
     try {
-        const db = await connectToDatabase();
+        const db = req.db; // Используем базу данных из `req`
         console.log('Adding item to wishlist:', { user_id, service_id });
 
         const result = await db.query(
@@ -78,7 +77,7 @@ router.delete('/:wishlist_id', async (req, res) => {
     }
 
     try {
-        const db = await connectToDatabase();
+        const db = req.db; // Используем базу данных из `req`
         console.log('Deleting item from wishlist:', wishlist_id);
 
         const result = await db.query(
