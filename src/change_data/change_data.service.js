@@ -62,8 +62,6 @@ export class ChangeDataService {
         return { message: 'Password updated successfully' };
     }
     
-    
-
     // Изменение пароля пользователя
     async updateUserPassword(db, userId, oldPassword, newPassword, confirmPassword) {
         try {
@@ -138,20 +136,26 @@ export class ChangeDataService {
         }
     }
 
-    // Обновление контактной информации поставщика
-    async updateProviderContactInfo(db, providerId, newPhone, newEmail) {
-        try {
-            this.validateContactInfo(newPhone, newEmail);
-
-            await db.query(
-                `UPDATE "Provider" SET phone = $1, email = $2 WHERE provider_id = $3`,
-                [newPhone || null, newEmail || null, providerId]
-            );
-            return { message: 'Contact information updated successfully' };
-        } catch (error) {
-            throw new Error('Error updating provider contact information: ' + error.message);
+ // Оновлення адреси електронної пошти постачальника
+async updateProviderEmail(db, providerId, newEmail) {
+    try {
+        // Перевірка валідності email
+        if (!this.#emailRegex.test(newEmail)) {
+            throw new Error('Invalid email format');
         }
+
+        // Оновлення email в базі даних
+        await db.query(
+            `UPDATE "Provider" SET email = $1 WHERE provider_id = $2`,
+            [newEmail, providerId]
+        );
+
+        return { message: 'Email updated successfully' };
+    } catch (error) {
+        throw new Error('Error updating email: ' + error.message);
     }
+}
+
 
     // Обновление контактной информации пользователя
     async updateUserContactInfo(db, userId, newPhone, newEmail) {

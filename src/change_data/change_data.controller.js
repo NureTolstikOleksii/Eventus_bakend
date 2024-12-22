@@ -101,18 +101,20 @@ router.put('/update_user_email', async (req, res) => {
 });
 
 // Зміна контактної інформації постачальника
-router.put('/update_provider_contact_info', async (req, res) => {
-    const { newPhone, newEmail } = req.body;
+router.put('/update_provider_email', async (req, res) => {
+    const { newEmail } = req.body;
 
+    // Перевірка авторизації
     if (!req.session.userId || req.session.userRole !== 'provider') {
         return res.status(403).json({ message: 'Access denied' });
     }
 
     try {
-        const result = await changeDataService.updateProviderContactInfo(req.db, req.session.userId, newPhone, newEmail);
+        // Виклик сервісу для оновлення email
+        const result = await changeDataService.updateProviderEmail(req.db, req.session.userId, newEmail);
         res.status(200).json(result);
     } catch (error) {
-        res.status(500).json({ message: 'Failed to update contact information', error: error.message });
+        res.status(500).json({ message: 'Failed to update email', error: error.message });
     }
 });
 
