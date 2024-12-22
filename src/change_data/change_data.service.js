@@ -20,6 +20,30 @@ export class ChangeDataService {
         }
     };
 
+    // Сервіс: Зміна імені постачальника
+async updateProviderName(db, providerId, newName) {
+    try {
+        // Валідація нового імені
+        if (!/^[a-zA-Z\s]+$/.test(newName)) {
+            throw new Error('Name must contain only Latin letters and spaces.');
+        }
+
+        // Оновлення імені в базі даних
+        const result = await db.query(
+            `UPDATE "Provider" SET name = $1 WHERE provider_id = $2`,
+            [newName, providerId]
+        );
+
+        if (result.rowCount === 0) {
+            throw new Error('Provider not found.');
+        }
+
+        return { message: 'Name updated successfully' };
+    } catch (error) {
+        throw new Error('Error updating provider name: ' + error.message);
+    }
+}
+
     // Изменение пароля постачальника
     async updateProviderPassword(db, userId, oldPassword, newPassword, confirmPassword) {
         console.log('Starting password update process for provider:', userId);

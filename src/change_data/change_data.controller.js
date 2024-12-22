@@ -52,6 +52,24 @@ router.put('/update_user_name', async (req, res) => {
     }
 });
 
+// Зміна імені постачальника
+router.put('/update_provider_name', async (req, res) => {
+    const { newName } = req.body;
+
+    // Перевірка прав доступу
+    if (!req.session.userId || req.session.userRole !== 'provider') {
+        return res.status(403).json({ message: 'Access denied' });
+    }
+
+    try {
+        const result = await changeDataService.updateProviderName(req.db, req.session.userId, newName);
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to update name', error: error.message });
+    }
+});
+
+
 // Зміна типу послуг постачальника
 router.put('/update_service_category', async (req, res) => {
     const { newCategory } = req.body;
