@@ -68,20 +68,22 @@ export default class MainScreenService {
                     s.description, 
                     s.price, 
                     s.rating, 
-                    p.photo_url
+                    p.photo_url,
+                    pr.name AS provider_name
                 FROM "Service" s
                 LEFT JOIN "Photo" p ON s."service_id" = p."service_id"
+                LEFT JOIN "Provider" pr ON s."provider_id" = pr."provider_id"
                 ORDER BY s."rating" DESC
                 LIMIT $1
                 `,
                 [limit]
             );
             const services = servicesResult.rows;
-
+    
             if (!services || services.length === 0) {
                 throw new Error('No services found');
             }
-
+    
             return { message: 'Top services retrieved successfully', data: services };
         } catch (error) {
             throw new Error('Error fetching top services: ' + error.message);
