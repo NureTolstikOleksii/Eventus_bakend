@@ -18,7 +18,38 @@ export class ChangeDataService {
         } catch (error) {
             throw new Error('Error updating email: ' + error.message);
         }
-    }
+    };
+
+    // Изменение пароля постачальника
+    async updateProviderPassword (db, userId, oldPassword, newPassword, confirmPassword) {
+        if (newPassword !== confirmPassword) {
+            throw new Error('New password and confirm password do not match');
+        }
+    
+        // Отримати інформацію про постачальника
+        const provider = await db('Provider').where({ provider_id: userId }).first();
+    
+        if (!provider) {
+            throw new Error('Provider not found');
+        }
+    
+        // Перевірка старого паролю
+        const isMatch = await bcrypt.compare(oldPassword, provider.password);
+        if (!isMatch) {
+            throw new Error('Old password is incorrect');
+        }
+    
+        // Хешування нового паролю
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+    
+        // Оновлення паролю у базі даних
+        await db('Provider')
+            .where({ provider_id: userId })
+            .update({ password: hashedPassword });
+    
+        return { message: 'Password updated successfully' };
+    };
+    
 
     // Изменение пароля пользователя
     async updateUserPassword(db, userId, oldPassword, newPassword, confirmPassword) {
