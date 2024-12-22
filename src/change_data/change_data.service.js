@@ -21,34 +21,47 @@ export class ChangeDataService {
     };
 
     // Изменение пароля постачальника
-    async updateProviderPassword (db, userId, oldPassword, newPassword, confirmPassword) {
+    async updateProviderPassword(db, userId, oldPassword, newPassword, confirmPassword) {
+        console.log('Starting password update process for provider:', userId);
+    
         if (newPassword !== confirmPassword) {
+            console.error('New password and confirm password do not match');
             throw new Error('New password and confirm password do not match');
         }
     
         // Отримати інформацію про постачальника
         const provider = await db('Provider').where({ provider_id: userId }).first();
-    
         if (!provider) {
+            console.error('Provider not found for userId:', userId);
             throw new Error('Provider not found');
         }
     
         // Перевірка старого паролю
         const isMatch = await bcrypt.compare(oldPassword, provider.password);
+        console.log('Password match status:', isMatch);
         if (!isMatch) {
+            console.error('Old password is incorrect for userId:', userId);
             throw new Error('Old password is incorrect');
         }
     
         // Хешування нового паролю
         const hashedPassword = await bcrypt.hash(newPassword, 10);
+        console.log('New hashed password:', hashedPassword);
     
         // Оновлення паролю у базі даних
-        await db('Provider')
+        const updateResult = await db('Provider')
             .where({ provider_id: userId })
             .update({ password: hashedPassword });
+        console.log('Password update result:', updateResult);
+    
+        if (updateResult === 0) {
+            console.error('Password update failed in the database');
+            throw new Error('Failed to update password in the database');
+        }
     
         return { message: 'Password updated successfully' };
-    };
+    }
+    
     
 
     // Изменение пароля пользователя
