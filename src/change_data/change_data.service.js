@@ -206,4 +206,15 @@ async updateProviderEmail(db, providerId, newEmail) {
             throw new Error('Enter a valid email address');
         }
     }
+
+    // Отримання категорій
+    async getAllCategories(db) {
+        try {
+            const result = await db.query('SELECT * FROM "Service_Category" ORDER BY category_id');
+            return result.rows; // Возвращает все строки
+        } catch (error) {
+            throw new Error('Error fetching categories: ' + error.message);
+        }
+    }
+
 }

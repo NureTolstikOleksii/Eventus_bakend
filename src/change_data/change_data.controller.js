@@ -152,5 +152,15 @@ router.put('/update_user_contact_info', async (req, res) => {
     }
 });
 
+// Отримання категорій
+router.get('/categories', async (req, res) => {
+    try {
+        const categories = await CategoryService.getAllCategories(req.db); // Передаём объект БД
+        res.status(200).json(categories);
+    } catch (error) {
+        console.error('Error fetching categories:', error.message);
+        res.status(500).json({ message: 'Failed to fetch categories' });
+    }
+});
 
 export const changeDataRouter = router;
