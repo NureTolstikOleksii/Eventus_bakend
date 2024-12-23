@@ -120,7 +120,7 @@ router.get('/user_orders', async (req, res) => {
     }
 
     try {
-        const orders = await ordersService.getUserOrders(req.db, req.session.userId);
+        const orders = await profileService.getUserOrders(req.db, req.session.userId);
         res.status(200).json(orders);
     } catch (error) {
         res.status(500).json({ message: 'Failed to fetch orders', error: error.message });
