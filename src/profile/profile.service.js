@@ -124,14 +124,12 @@ export class ProfileService {
         try {
             const query = `
                 SELECT 
-                    o.name AS order_name, 
-                    o.comment AS order_comment,
+                    o.order_id AS order_id, 
                     o.date AS order_date,
-                    s.name AS service_name,
-                    s.price AS service_price,
-                    s.rating AS service_rating
+                    p.name AS provider_name
                 FROM "Orders" o
                 INNER JOIN "Service" s ON o."service_id" = s."service_id"
+                INNER JOIN "Provider" p ON s."provider_id" = p."provider_id" -- Соединение с таблицей провайдеров
                 WHERE s."provider_id" = $1
                 ORDER BY o."date" DESC;
             `;
