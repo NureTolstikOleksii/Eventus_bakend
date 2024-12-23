@@ -70,6 +70,7 @@ export default class MainScreenService {
                     s.rating, 
                     p.photo_url,
                     pr.name AS provider_name
+                    pr.provider_id
                 FROM "Service" s
                 LEFT JOIN "Photo" p ON s."service_id" = p."service_id"
                 LEFT JOIN "Provider" pr ON s."provider_id" = pr."provider_id"
