@@ -105,7 +105,7 @@ router.get('/notifications', async (req, res) => {
         return res.status(403).json({ message: 'Access denied' });
     }
     try {
-        const notifications = await notificationService.getProviderNotifications(req.db, req.session.userId);
+        const notifications = await profileService.getProviderNotifications(req.db, req.session.userId);
         res.status(200).json(notifications);
     } catch (error) {
         console.error('Error fetching notifications:', error.message);

@@ -119,23 +119,27 @@ export class ProfileService {
             throw new Error('Failed to fetch provider profile: ' + error.message);
         }
     }
-//Сповіщення постачальника
+    //Сповіщення постачальника
     async getProviderNotifications(db, providerId) {
-    try {
-        const query = `
-            SELECT n.text AS notification_text, n.created_at AS notification_time
-            FROM "Notification" n
-            INNER JOIN "Order" o ON n.order_id = o.order_id
-            INNER JOIN "Service" s ON o.service_id = s.service_id
-            WHERE s.provider_id = $1
-            ORDER BY n.created_at DESC;
-        `;
-        const { rows } = await db.query(query, [providerId]);
-        return rows;
-    } catch (error) {
-        throw new Error('Error fetching provider notifications: ' + error.message);
+        try {
+            const query = `
+                SELECT 
+                    o.name AS order_name, 
+                    o.comment AS order_comment,
+                    o.date AS order_date,
+                    s.name AS service_name,
+                    s.price AS service_price,
+                    s.rating AS service_rating
+                FROM "Orders" o
+                INNER JOIN "Service" s ON o."service_id" = s."service_id"
+                WHERE s."provider_id" = $1
+                ORDER BY o."date" DESC;
+            `;
+            const { rows } = await db.query(query, [providerId]);
+            return rows;
+        } catch (error) {
+            throw new Error('Error fetching provider notifications: ' + error.message);
+        }
     }
 }
 
-    
-}
