@@ -91,44 +91,60 @@ router.get('/provider/:providerId/packages', async (req, res) => {
 });
 // Маршрут для добавления новой услуги
 // services.controller.js (пример)
+// services.controller.js
+
+// Маршрут для добавления новой услуги
 router.post('/', async (req, res) => {
     const {
-      name,
-      description,
-      price,
-      provider_id,
-      category_id,
-      location_name,
-      location_address,
-    } = req.body;
-  
-    if (!name || !provider_id) {
-      return res.status(400).json({ error: 'Name and Provider ID are required' });
-    }
-  
-    try {
-      // 1. Находим или создаём Location (name = город, address = ...)
-      let location_id = await servicesService.findOrCreateLocation(
-        req.db, 
-        location_name, 
-        location_address
-      );
-  
-      // 2. Создаём услугу
-      const newService = await servicesService.addService(req.db, {
         name,
         description,
         price,
         provider_id,
         category_id,
-        location_id,
-      });
-  
-      res.status(201).json(newService);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
+        location_name,
+        location_address,
+    } = req.body;
+
+    // Проверяем обязательные поля
+    if (!name || !provider_id) {
+        return res.status(400).json({
+            error: 'Name and Provider ID are require',
+            missingFields: {
+                name: !name ? 'Name is missing' : undefined,
+                provider_id: !provider_id ? 'Provider ID is missing' : undefined,
+            },
+        });
     }
-  });
+
+    try {
+        // 1. Обрабатываем локацию (находим или создаём новую)
+        let location_id = null;
+        if (location_name && location_address) {
+            location_id = await servicesService.findOrCreateLocation(
+                req.db,
+                location_name.trim(),
+                location_address.trim()
+            );
+        }
+
+        // 2. Создаём услугу
+        const newService = await servicesService.addService(req.db, {
+            name: name.trim(),
+            description: description?.trim() || null,
+            price: price || 0,
+            provider_id,
+            category_id: category_id || null,
+            location_id,
+        });
+
+        // 3. Возвращаем результат
+        return res.status(201).json(newService);
+    } catch (error) {
+        console.error('Error adding service:', error.message);
+        return res.status(500).json({ error: error.message });
+    }
+});
+
   
 
 // Маршрут для подтверждения удаления услуги
@@ -163,7 +179,7 @@ router.post('/provider/:providerId/packages', async (req, res) => {
 
     // Проверим минимум необходимые поля
     if (!name || !providerId) {
-        return res.status(400).json({ error: 'Name and Provider ID are required' });
+        return res.status(400).json({ error: 'Name and Provider ID are requir' });
     }
 
     try {
