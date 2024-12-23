@@ -152,11 +152,8 @@ export class ProfileService {
                     o.order_id,
                     o.name AS order_name,
                     o.date AS order_date,
-                    o.total_price,
-                    s.name AS service_name,
-                    s.description AS service_description
+                    o.total_price
                 FROM "Orders" o
-                INNER JOIN "Service" s ON o.service_id = s.service_id
                 WHERE o.user_id = $1
                 ORDER BY o.date DESC;
             `;
