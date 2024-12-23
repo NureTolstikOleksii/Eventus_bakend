@@ -99,25 +99,42 @@ router.post('/', async (req, res) => {
         name,
         description,
         price,
-        provider_id,
         category_id,
         location_name,
         location_address,
     } = req.body;
 
-    // Проверяем обязательные поля
-    if (!name || !provider_id) {
+    // Извлекаем provider_id из сессии или токена
+    const provider_id = req.session?.provider_id || req.user?.provider_id;
+
+    if (!provider_id) {
+        return res.status(401).json({
+            error: 'Provider ID not found. Please log in as a provider.',
+        });
+    }
+
+    if (!name) {
         return res.status(400).json({
-            error: 'Name and Provider ID are require',
-            missingFields: {
-                name: !name ? 'Name is missing' : undefined,
-                provider_id: !provider_id ? 'Provider ID is missing' : undefined,
-            },
+            error: 'Name is required.',
         });
     }
 
     try {
-        // 1. Обрабатываем локацию (находим или создаём новую)
+        // Проверяем, что провайдер существует (опционально)
+        const providerCheckQuery = `
+            SELECT provider_id 
+            FROM "Provider" 
+            WHERE provider_id = $1
+        `;
+        const providerCheckResult = await req.db.query(providerCheckQuery, [provider_id]);
+
+        if (providerCheckResult.rows.length === 0) {
+            return res.status(400).json({
+                error: 'Invalid provider_id. Provider does not exist.',
+            });
+        }
+
+        // Найти или создать локацию
         let location_id = null;
         if (location_name && location_address) {
             location_id = await servicesService.findOrCreateLocation(
@@ -127,7 +144,7 @@ router.post('/', async (req, res) => {
             );
         }
 
-        // 2. Создаём услугу
+        // Добавляем услугу
         const newService = await servicesService.addService(req.db, {
             name: name.trim(),
             description: description?.trim() || null,
@@ -137,13 +154,13 @@ router.post('/', async (req, res) => {
             location_id,
         });
 
-        // 3. Возвращаем результат
         return res.status(201).json(newService);
     } catch (error) {
         console.error('Error adding service:', error.message);
         return res.status(500).json({ error: error.message });
     }
 });
+
 
   
 
