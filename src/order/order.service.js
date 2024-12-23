@@ -1,4 +1,5 @@
 export class OrderService {
+
     // Создание заказа
     async createOrder(db, orderData) {
         const { user_id, service_id, special_requests } = orderData;
@@ -8,37 +9,53 @@ export class OrderService {
             `SELECT * FROM "Service" WHERE service_id = $1`,
             [service_id]
         );
-        const service = serviceResult.rows[0];
 
+        const service = serviceResult.rows[0];
         if (!service) {
             throw new Error('Service not found');
         }
 
-        const date = new Date().toISOString().split('T')[0];
+        // Форматирование даты
+        const currentDate = new Date();
+        const date = currentDate.toISOString().split('T')[0];
 
-        // Создание заказа
-        const result = await db.query(
-            `
-            INSERT INTO "Orders" (name, date, total_price, user_id, service_id, special_requests)
-            VALUES ($1, $2, $3, $4, $5, $6)
-            RETURNING order_id;
-            `,
-            [
-                service.name, // Используем имя сервиса как имя заказа
+        try {
+            // Начало транзакции
+            await db.query('BEGIN');
+
+            // Создание заказа
+            const result = await db.query(
+                `
+                INSERT INTO "Orders" (name, date, comment, total_price, user_id, service_id)
+                VALUES ($1, $2, $3, $4, $5, $6)
+                RETURNING order_id;
+                `,
+                [
+                    service.name, // Используем имя сервиса как имя заказа
+                    date,
+                    special_requests || null, // Спецзапросы, если есть
+                    service.price, // Итоговая цена
+                    user_id,
+                    service_id,
+                ]
+            );
+
+            // Завершение транзакции
+            await db.query('COMMIT');
+
+            return {
+                orderId: result.rows[0].order_id,
+                name: service.name,
                 date,
-                service.price, // Используем цену сервиса как итоговую цену
+                total_price: service.price,
                 user_id,
                 service_id,
-                special_requests || null, // Если нет спецзапросов, передаем NULL
-            ]
-        );
-
-        return {
-            orderId: result.rows[0].order_id,
-            ...orderData,
-            date,
-            total_price: service.price,
-        };
+            };
+        } catch (error) {
+            // Откат транзакции в случае ошибки
+            await db.query('ROLLBACK');
+            throw new Error(`Error creating order: ${error.message}`);
+        }
     }
 
     // Получение страницы заказа

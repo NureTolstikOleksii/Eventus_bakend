@@ -28,6 +28,7 @@ router.post('/', async (req, res) => {
 
                 if (result.rows.length > 0) {
                     companyName = result.rows[0].company_name;
+                    user.phone_number = result.rows[0].phone_number; // Добавляем номер телефона
                 }
             }
         }
@@ -42,6 +43,7 @@ router.post('/', async (req, res) => {
         req.session.name = user.name;
         req.session.userRole = role;
         req.session.photo = user.photo_url;
+        req.session.phone = user.phone_number; // Сохраняем номер телефона
         req.session.companyName = companyName; // Сохраняем имя компании для поставщика (если есть)
 
         console.log('Session data:', req.session);
