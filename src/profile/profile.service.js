@@ -123,7 +123,7 @@ export class ProfileService {
     async getProviderNotifications(db, providerId) {
     try {
         const query = `
-            SELECT n.text AS notification_text, n.created_at AS notification_time
+            SELECT n.text AS notification_text, n.sent_at AS notification_time
             FROM "Notification" n
             INNER JOIN "Order" o ON n.order_id = o.order_id
             INNER JOIN "Service" s ON o.service_id = s.service_id
