@@ -113,5 +113,19 @@ router.get('/notifications', async (req, res) => {
     }
 });
  
+// Отримання всіх замовлень користувача
+router.get('/user_orders', async (req, res) => {
+    if (!req.session.userId || req.session.userRole !== 'customer') {
+        return res.status(403).json({ message: 'Access denied' });
+    }
+
+    try {
+        const orders = await ordersService.getUserOrders(req.db, req.session.userId);
+        res.status(200).json(orders);
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to fetch orders', error: error.message });
+    }
+});
+
 
 export const profileRouter = router;
