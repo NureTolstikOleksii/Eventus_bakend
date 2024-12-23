@@ -112,5 +112,6 @@ router.get('/notifications', async (req, res) => {
         res.status(500).json({ message: 'Failed to fetch notifications', error: error.message });
     }
 });
+ 
 
 export const profileRouter = router;

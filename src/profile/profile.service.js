@@ -124,14 +124,18 @@ export class ProfileService {
         try {
             const query = `
                 SELECT 
-                    o.order_id AS order_id, 
+                    n.notification_id, 
+                    n.text AS notification_text,
+                    n.sent_at AS notification_time,
+                    o.order_id,
                     o.date AS order_date,
-                    p.name AS provider_name
-                FROM "Orders" o
-                INNER JOIN "Service" s ON o."service_id" = s."service_id"
-                INNER JOIN "Provider" p ON s."provider_id" = p."provider_id" -- Соединение с таблицей провайдеров
-                WHERE s."provider_id" = $1
-                ORDER BY o."date" DESC;
+                    u.name AS customer_name
+                FROM "Notification" n
+                INNER JOIN "Orders" o ON n.order_id = o.order_id
+                INNER JOIN "Service" s ON o.service_id = s.service_id
+                INNER JOIN "User" u ON o.user_id = u.user_id
+                WHERE s.provider_id = $1
+                ORDER BY n.sent_at DESC;
             `;
             const { rows } = await db.query(query, [providerId]);
             return rows;
@@ -139,5 +143,4 @@ export class ProfileService {
             throw new Error('Error fetching provider notifications: ' + error.message);
         }
     }
-}
-
+}    
